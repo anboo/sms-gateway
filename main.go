@@ -1,14 +1,18 @@
 package main
 
 import (
-    "fmt"
-    "lesson/provider"
+	"fmt"
+	"lesson/provider"
 )
 
 func main() {
-    p := provider.VonageSmsProvider{}
-    p.Init()
+	p := provider.TwilioSmsProvider{}
+	p.Init()
 
-    reqId := p.CheckVerificationCode("+79636417683", "8775")
-    fmt.Println(reqId)
+	//reqId, err := p.SendVerificationCode("+79636417683")
+	//fmt.Println(reqId)
+	//fmt.Println(err)
+
+	check := p.CheckVerificationCode("+79636417683", "5067")
+	fmt.Println(check)
 }

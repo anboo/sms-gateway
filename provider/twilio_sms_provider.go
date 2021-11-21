@@ -11,7 +11,10 @@ type TwilioSmsProvider struct {
 }
 
 func (p *TwilioSmsProvider) Init() {
-    p.client = twilio.NewRestClientWithParams(twilio.RestClientParams{AccountSid: os.Getenv("TWILIO_ACCOUNT_SID")})
+    p.client = twilio.NewRestClientWithParams(twilio.RestClientParams{
+        AccountSid: os.Getenv("TWILIO_ACCOUNT_SID"),
+        Password:   os.Getenv("TWILIO_AUTH_TOKEN"),
+    })
 }
 
 func (p *TwilioSmsProvider) GetProviderCode() string {
@@ -24,10 +27,12 @@ func (p *TwilioSmsProvider) SupportPhoneNumber(phone string) bool {
 
 func (p *TwilioSmsProvider) SendVerificationCode(phone string) (ResVerifyReqId, error) {
     locale := "en"
+    channel := "sms"
 
     res, err := p.client.VerifyV2.CreateVerification(p.provideServiceSid(), &openapi.CreateVerificationParams{
-        Locale: &locale,
-        To:     &phone,
+        Locale:  &locale,
+        To:      &phone,
+        Channel: &channel,
     })
 
     if err != nil {
@@ -47,9 +52,7 @@ func (p *TwilioSmsProvider) CheckVerificationCode(phone string, code string) boo
         return false
     }
 
-    expectedStatus := "approved"
-
-    return res.Status == &expectedStatus
+    return *res.Status == "approved"
 }
 
 func (p *TwilioSmsProvider) provideServiceSid() string {
