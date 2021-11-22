@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/anboo/sms-gateway/provider"
 	"github.com/gin-gonic/gin"
-	"lesson/provider"
 )
 
 func main() {
