@@ -2,6 +2,7 @@ package provider
 
 import (
     "fmt"
+    "github.com/sirupsen/logrus"
     "github.com/vonage/vonage-go-sdk"
     "os"
     "sync"
@@ -31,9 +32,13 @@ func (p *VonageSmsProvider) SendVerificationCode(phone string) (ResVerifyReqId, 
         p.client.Cancel(oldReqId.(string))
     }
 
-    req, errResp, err := p.client.Request(phone, os.Getenv("VONAGE_BRAND_NAME"), vonage.VerifyOpts{
+    res, errResp, err := p.client.Request(phone, os.Getenv("VONAGE_BRAND_NAME"), vonage.VerifyOpts{
         CodeLength: 4,
     })
+
+    if res.Status != "0" {
+        return "", fmt.Errorf("incorrect status from vonage: " + res.Status)
+    }
 
     if errResp.Status != "" {
         return "", fmt.Errorf("error from vonage: %s %s", errResp.Status, errResp.ErrorText)
@@ -43,7 +48,7 @@ func (p *VonageSmsProvider) SendVerificationCode(phone string) (ResVerifyReqId, 
         return "", err
     }
 
-    reqId := ResVerifyReqId(req.RequestId)
+    reqId := ResVerifyReqId(res.RequestId)
 
     p.cache.Store(phone, reqId)
 
@@ -51,13 +56,17 @@ func (p *VonageSmsProvider) SendVerificationCode(phone string) (ResVerifyReqId, 
 }
 
 func (p *VonageSmsProvider) CheckVerificationCode(phone string, code string) bool {
+    l := logrus.WithField("phone", phone)
+
     reqId, ok := p.cache.Load(phone)
     if !ok {
+        l.Warningln("not found requestId for phone in local storage")
         return false
     }
 
     res, errRes, err := p.client.Check(reqId.(string), code)
     if err != nil || errRes.Status != "" {
+        l.Warningln("error response checking code is " + err.Error() + " " + errRes.Status)
         return false
     }
 

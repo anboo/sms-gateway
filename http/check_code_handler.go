@@ -5,7 +5,12 @@ import (
     "github.com/gin-gonic/gin"
 )
 
-func CheckCodeHandler(c *gin.Context) {
+type CheckCodeHandler struct {
+    PhoneNumberManager *service.PhoneNumberManager
+    LocationManager    *service.LocationManager
+}
+
+func (e *CheckCodeHandler) Handler(c *gin.Context) {
     req := struct {
         PhoneNumber string `json:"phone_number"`
         Code        string `json:"code"`
@@ -23,17 +28,18 @@ func CheckCodeHandler(c *gin.Context) {
     }
 
     ip := c.ClientIP()
-    formattedPhoneNumber, _, err := service.GetObjectStorage().GetLocationManager().ParsePhoneAndFormatE164(req.PhoneNumber, ip)
+    formattedPhoneNumber, _, err := e.LocationManager.ParsePhoneAndFormatE164(req.PhoneNumber, ip)
     if err != nil {
         c.JSON(400, gin.H{"error": "incorrect_phone"})
         return
     }
 
-    phm := service.GetObjectStorage().GetPhoneNumberManager()
+    phm := e.PhoneNumberManager
     for _, p := range phm.Providers {
         //p := item.(provider.SmsProvider)
         //@todo need parallel checking of code in all available providers
         //@todo need save to storage last providers for checking it later
+        //@todo check previous attempts maybe
         if p.CheckVerificationCode(formattedPhoneNumber, req.Code) {
             c.JSON(200, gin.H{"response": "OK"})
             return

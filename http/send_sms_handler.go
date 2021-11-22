@@ -1,12 +1,18 @@
 package http
 
 import (
-    "fmt"
     "github.com/anboo/sms-gateway/service"
     "github.com/gin-gonic/gin"
+    "github.com/sirupsen/logrus"
 )
 
-func SendSmsHandler(c *gin.Context) {
+type SendSmsHandler struct {
+    PhoneNumberManager *service.PhoneNumberManager
+    LocationManager    *service.LocationManager
+    Logger             *logrus.Logger
+}
+
+func (e *SendSmsHandler) Handler(c *gin.Context) {
     var err error
 
     req := struct {
@@ -15,28 +21,31 @@ func SendSmsHandler(c *gin.Context) {
 
     err = c.BindJSON(&req)
     if err != nil {
-        fmt.Println("cannot unmarshal body " + err.Error())
+        e.Logger.Warningln("cannot unmarshal body " + err.Error())
         c.JSON(400, gin.H{"error": "incorrect_body"})
         return
     }
 
-    formattedPhoneNumber, regionCodeByIp, err := service.GetObjectStorage().GetLocationManager().ParsePhoneAndFormatE164(
+    formattedPhoneNumber, regionCodeByIp, err := e.LocationManager.ParsePhoneAndFormatE164(
         req.PhoneNumber,
         c.ClientIP(),
     )
     if err != nil {
+        e.Logger.Infoln("incorrect phone " + err.Error())
         c.JSON(400, gin.H{"error": "incorrect_phone"})
         return
     }
 
-    p, err := service.GetObjectStorage().GetPhoneNumberManager().GetProviderForPhoneNumber(formattedPhoneNumber)
+    p, err := e.PhoneNumberManager.GetProviderForPhoneNumber(formattedPhoneNumber)
     if err != nil {
+        e.Logger.Error("cannot find provider " + err.Error() + " for " + formattedPhoneNumber)
         c.JSON(500, gin.H{"error": "cannot_find_provider"})
         return
     }
 
     reqId, err := p.SendVerificationCode(formattedPhoneNumber)
     if err != nil {
+        e.Logger.Error("error send verification code" + err.Error() + " for " + formattedPhoneNumber)
         c.JSON(500, gin.H{"error": "internal_error_at_sending_code"})
         return
     }
