@@ -9,7 +9,6 @@ import (
 type SendSmsHandler struct {
     PhoneNumberManager *service.PhoneNumberManager
     LocationManager    *service.LocationManager
-    Logger             *logrus.Logger
 }
 
 func (e *SendSmsHandler) Handler(c *gin.Context) {
@@ -21,7 +20,7 @@ func (e *SendSmsHandler) Handler(c *gin.Context) {
 
     err = c.BindJSON(&req)
     if err != nil {
-        e.Logger.Warningln("cannot unmarshal body " + err.Error())
+        logrus.Warningln("cannot unmarshal body " + err.Error())
         c.JSON(400, gin.H{"error": "incorrect_body"})
         return
     }
@@ -31,21 +30,21 @@ func (e *SendSmsHandler) Handler(c *gin.Context) {
         c.ClientIP(),
     )
     if err != nil {
-        e.Logger.Infoln("incorrect phone " + err.Error())
+        logrus.Infoln("incorrect phone " + err.Error())
         c.JSON(400, gin.H{"error": "incorrect_phone"})
         return
     }
 
     p, err := e.PhoneNumberManager.GetProviderForPhoneNumber(formattedPhoneNumber)
     if err != nil {
-        e.Logger.Error("cannot find provider " + err.Error() + " for " + formattedPhoneNumber)
+        logrus.Error("cannot find provider " + err.Error() + " for " + formattedPhoneNumber)
         c.JSON(500, gin.H{"error": "cannot_find_provider"})
         return
     }
 
     reqId, err := p.SendVerificationCode(formattedPhoneNumber)
     if err != nil {
-        e.Logger.Error("error send verification code" + err.Error() + " for " + formattedPhoneNumber)
+        logrus.Error("error send verification code" + err.Error() + " for " + formattedPhoneNumber)
         c.JSON(500, gin.H{"error": "internal_error_at_sending_code"})
         return
     }

@@ -5,28 +5,27 @@ import (
     "github.com/oschwald/geoip2-golang"
     "github.com/ttacon/libphonenumber"
     "net"
-    "os"
-    "sync"
 )
 
 type LocationManager struct {
-    sync.Mutex
+    //local database pointer
+    //can be nil if not called LocationManager.UseDatabase(path)
+    //if nil, location manager not parse ip for detect iso code and use libphonenumber.UNKNOWN_REGION
     mixmind *geoip2.Reader
 }
 
-func (l *LocationManager) ParsePhoneAndFormatE164(phoneNumber string, clientIp string) (string, string, error) {
-    mixmindDatabasePath := os.Getenv("MIXMIND_DATABASE_PATH")
+func (l *LocationManager) UseDatabase(databasePath string) error {
+    var err error
+    l.mixmind, err = geoip2.Open(databasePath)
 
-    l.Lock()
-    if mixmindDatabasePath != "" && l.mixmind == nil {
-        var err error
-        l.mixmind, err = geoip2.Open(mixmindDatabasePath)
-        if err != nil {
-            panic(err)
-        }
+    if err != nil {
+        return err
     }
-    l.Unlock()
 
+    return nil
+}
+
+func (l *LocationManager) ParsePhoneAndFormatE164(phoneNumber string, clientIp string) (string, string, error) {
     regionCodeByIp := libphonenumber.UNKNOWN_REGION
 
     ip := net.ParseIP(clientIp)

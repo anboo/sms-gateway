@@ -33,11 +33,17 @@ func main() {
     }
 
     lm = &service.LocationManager{}
+    mixmindDatabasePath := os.Getenv("MIXMIND_DATABASE_PATH")
+    if mixmindDatabasePath != "" {
+        err := lm.UseDatabase(mixmindDatabasePath)
+        if err != nil {
+            panic(err)
+        }
+    }
 
     log.SetOutput(os.Stdout)
-    logger := log.WithField("userId", "custom")
 
-    sendSmsHandler := http.SendSmsHandler{PhoneNumberManager: phm, LocationManager: lm, Logger: logger.Logger}
+    sendSmsHandler := http.SendSmsHandler{PhoneNumberManager: phm, LocationManager: lm}
     r.POST("/v1/sms/verification/send", sendSmsHandler.Handler)
     checkCodeHandler := http.CheckCodeHandler{PhoneNumberManager: phm, LocationManager: lm}
     r.POST("/v1/sms/verification/check", checkCodeHandler.Handler)
