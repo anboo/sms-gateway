@@ -35,6 +35,10 @@ func (e *SendSmsHandler) Handler(c *gin.Context) {
         return
     }
 
+    //todo add checking number is libphonenumber.FIXED_LINE_OR_MOBILE
+    //if libphonenumber.GetNumberType(formattedPhoneNumber) == libphonenumber.FIXED_LINE_OR_MOBILE {
+    //}
+
     p, err := e.PhoneNumberManager.GetProviderForPhoneNumber(formattedPhoneNumber)
     if err != nil {
         logrus.Error("cannot find provider " + err.Error() + " for " + formattedPhoneNumber)

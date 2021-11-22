@@ -25,7 +25,7 @@ func (p *TwilioSmsProvider) SupportPhoneNumber(phone string) bool {
     return true
 }
 
-func (p *TwilioSmsProvider) SendVerificationCode(phone string) (ResVerifyReqId, error) {
+func (p *TwilioSmsProvider) SendVerificationCode(phone string) (string, error) {
     locale := "en"
     channel := "sms"
 
@@ -36,10 +36,10 @@ func (p *TwilioSmsProvider) SendVerificationCode(phone string) (ResVerifyReqId, 
     })
 
     if err != nil {
-        return ResVerifyReqId(""), err
+        return "", err
     }
 
-    return ResVerifyReqId(*res.Sid), nil
+    return *res.Sid, nil
 }
 
 func (p *TwilioSmsProvider) CheckVerificationCode(phone string, code string) bool {

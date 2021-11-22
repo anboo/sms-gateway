@@ -26,7 +26,7 @@ func (p *VonageSmsProvider) SupportPhoneNumber(phone string) bool {
     return true
 }
 
-func (p *VonageSmsProvider) SendVerificationCode(phone string) (ResVerifyReqId, error) {
+func (p *VonageSmsProvider) SendVerificationCode(phone string) (string, error) {
     oldReqId, ok := p.cache.Load(phone)
     if ok {
         p.client.Cancel(oldReqId.(string))
@@ -48,7 +48,7 @@ func (p *VonageSmsProvider) SendVerificationCode(phone string) (ResVerifyReqId, 
         return "", err
     }
 
-    reqId := ResVerifyReqId(res.RequestId)
+    reqId := res.RequestId
 
     p.cache.Store(phone, reqId)
 
