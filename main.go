@@ -2,13 +2,33 @@ package main
 
 import (
 	"fmt"
+	"github.com/anboo/sms-gateway/provider"
 	"github.com/gin-gonic/gin"
-	"lesson/provider"
 )
 
+var providers map[string]interface{}
+
+func getProviderForPhoneNumber(phoneNumber string) (provider.SmsProvider, error) {
+	for _, item := range providers {
+		p := item.(provider.SmsProvider)
+		if p.SupportPhoneNumber(phoneNumber) {
+			return p, nil
+		}
+	}
+
+	return nil, fmt.Errorf("provider for phone number not found")
+}
+
 func main() {
-	p := provider.TwilioSmsProvider{}
-	p.Init()
+	providers = map[string]interface{}{
+		"vonage": &provider.VonageSmsProvider{},
+		"twilio": &provider.TwilioSmsProvider{},
+	}
+
+	for _, item := range providers {
+		p := item.(provider.SmsProvider)
+		p.Init()
+	}
 
 	r := gin.Default()
 	r.POST("/v1/sms/verification/send", func(c *gin.Context) {
@@ -28,6 +48,12 @@ func main() {
 		formattedPhoneNumber, regionCodeByIp, err := ParsePhoneAndFormatE164(req.PhoneNumber, c.ClientIP())
 		if err != nil {
 			c.JSON(400, gin.H{"error": "incorrect_phone"})
+			return
+		}
+
+		p, err := getProviderForPhoneNumber(formattedPhoneNumber)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "cannot_find_provider"})
 			return
 		}
 
@@ -67,22 +93,21 @@ func main() {
 			return
 		}
 
-		res := p.CheckVerificationCode(formattedPhoneNumber, req.Code)
-		if res {
-			c.JSON(200, gin.H{"response": "OK"})
-			return
-		} else {
-			c.JSON(400, gin.H{"error": "incorrect_code"})
-			return
+		for _, item := range providers {
+			p := item.(provider.SmsProvider)
+			//@todo need parallel checking of code in all available providers
+			//@todo need save to storage last providers for checking it later
+			if p.CheckVerificationCode(formattedPhoneNumber, req.Code) {
+				c.JSON(200, gin.H{"response": "OK"})
+				return
+			}
 		}
+
+		c.JSON(400, gin.H{"error": "incorrect_code"})
+		return
 	})
 
-	r.Run()
-
-	//reqId, err := p.SendVerificationCode("+79636417683")
-	//fmt.Println(reqId)
-	//fmt.Println(err)
-
-	check := p.CheckVerificationCode("+79636417683", "5067")
-	fmt.Println(check)
+	err := r.Run(); if err != nil {
+		panic(err)
+	}
 }
