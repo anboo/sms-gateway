@@ -5,6 +5,8 @@ go 1.17
 require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/oschwald/geoip2-golang v1.5.0
+	github.com/prometheus/client_golang v0.9.3
+	github.com/sirupsen/logrus v1.8.1
 	github.com/ttacon/libphonenumber v1.2.1
 	github.com/twilio/twilio-go v0.18.1
 	github.com/vonage/vonage-go-sdk v0.13.1
@@ -12,6 +14,7 @@ require (
 
 require (
 	github.com/antihax/optional v1.0.0 // indirect
+	github.com/beorn7/perks v1.0.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
@@ -23,11 +26,14 @@ require (
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/oschwald/maxminddb-golang v1.8.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90 // indirect
+	github.com/prometheus/common v0.4.0 // indirect
+	github.com/prometheus/procfs v0.0.0-20190507164030-5867b95ac084 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
